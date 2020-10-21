@@ -1,10 +1,11 @@
 library(shiny)
 library(ggplot2)
-
+library(tidyr)
+library(dplyr)
 
 ui <- fluidPage (
   titlePanel("Curva presión - volumen"),
-  
+  h6("por: Juan Camilo Cárdenas"),
   fluidRow (
     column(2,
            h3("Escenario 1"),
@@ -20,7 +21,18 @@ ui <- fluidPage (
                        min = 0, max = 200, value = 50)),
     position = "right",
     column(8,
-           (plotOutput(outputId = "galleta"))),
+           (plotOutput(outputId = "galleta")),
+            hr(),
+            column(6,
+                   span(textOutput("Volsis1"), style = "color:blue"),
+                   span(textOutput("EjFrac1"), style = "color:blue"),
+                   span(textOutput("PAM1"), style = "color:blue"),
+                   span(textOutput("PP1"), style = "color:blue")),
+           column(6,
+                  span(textOutput("Volsis2"), style = "color:red"),
+                  span(textOutput("EjFrac2"), style = "color:red"),
+                  span(textOutput("PAM2"), style = "color:red"),
+                  span(textOutput("PP2"), style = "color:red"))),
     column (2,
             h3 ("Escenario 2"),
             sliderInput(inputId = "PAS2", label = "Presión arterial sistólica", 
@@ -73,10 +85,34 @@ server <- function (input, output) {
       geom_curve(x = E2[[2]], y = E2[[1]], xend = A2[[2]], yend = A2[[1]], 
                  curvature = 0.08, colour = "red", size = 2) +
       geom_point(size = 3) +
-      coord_fixed(xlim = c(20, 200), ylim = c(0, 200)) +
+      coord_fixed(ratio = 0.75, xlim = c(0, 200), ylim = c(0, 200)) +
       theme_minimal()
     plot1
-  }, height = 600, width = 800)
+  }, height = 400, width = 800)
+  output$Volsis1 <- renderText({paste("Volumen sistólico:", 
+                                    (input$EDV1 - input$ESV1), "mL")})
+  
+  output$EjFrac1 <- renderText({paste("Fracción de eyección", 
+                                      (substr(((input$EDV1-input$ESV1)/input$EDV1),
+                                              1, 4)))})
+  output$PAM1 <- renderText({paste("Presión arterial media:", 
+                                   (substr(((input$PAS1 + input$PAD1 + input$PAD1)/3), 1, 5)))})
+  
+  output$PP1 <- renderText({paste("Presión de pulso:", input$PAS1 - input$PAD1)})
+  
+  output$Volsis2 <- renderText({paste("Volumen sistólico:",
+                                    (input$EDV2 - input$ESV2), "mL")})
+  
+  output$EjFrac2 <- renderText({paste("Fracción de eyección", 
+                                      (substr(((input$EDV2-input$ESV2)/input$EDV2),
+                                              1, 4)))})
+  
+  output$PAM2 <- renderText({paste("Presión arterial media:", 
+                                   (substr(((input$PAS2 + input$PAD2 + input$PAD2)/3), 1, 5)))})
+  
+  output$PP2 <- renderText({paste("Presión de pulso:", input$PAS2 - input$PAD2)})
+  
+  
 }
 
 shinyApp(ui = ui, server = server)
